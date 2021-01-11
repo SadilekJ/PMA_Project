@@ -56,7 +56,7 @@ public class SplashActivity extends AppCompatActivity {
                         .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 finish();
             }
-        },10000);
+        },4000);
     }
 
     Runnable runnable = new Runnable() {
