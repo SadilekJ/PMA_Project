@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/buttonHome"
         android:text="Home"
-        android:onClick="onHomeClickClick"
+        android:onClick="onHomeClick"
         >
 
     </Button>

@@ -15,6 +15,6 @@ public class HistoryActivity extends AppCompatActivity {
 
     public void onHomeClick(View v)
     {
-
+        this.finish();
     }
 }

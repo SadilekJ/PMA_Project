@@ -57,16 +57,19 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    DatePickerDialog picker;
-    EditText editTextDate;
-    Button buttonSelectDate;
-    TextView viewTitle;
-    TextView viewDescription;
-    ImageView imageView;
-    View view;
-    Context context;
-    String imageURL;
-    String date;
+    private DatePickerDialog picker;
+    private EditText editTextDate;
+    private Button buttonSelectDate;
+    private TextView viewTitle;
+    private TextView viewDescription;
+    private ImageView imageView;
+    private View view;
+    private Context context;
+    private String imageURL;
+    private String date;
+    private String pathToImage;
+
+//    final static String pathESD = Environment.getExternalStorageDirectory().getAbsolutePath();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,13 +142,12 @@ public class MainActivity extends AppCompatActivity {
                                 String description = jsonObject.getString("explanation");
                                 imageURL = jsonObject.getString("url");
 
+                                pathToImage = Environment.getExternalStorageDirectory() + "/Pictures/" + date + ".jpeg";
                                 if(imageURL != null)
                                 downloadImageFromUrl(v);
 
                                 viewTitle.setText(title);
                                 viewDescription.setText(description);
-                                String pathName = Environment.getExternalStorageDirectory() + "/Pictures/" + date + ".jpeg";
-                                imageView.setImageBitmap(BitmapFactory.decodeFile(pathName));
                             }
                             catch (JSONException e)
                             {
@@ -221,10 +223,17 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Toast.makeText(getApplicationContext(),"Image Downloaded to sd card",Toast.LENGTH_SHORT).show();
+            imageView.setImageBitmap(BitmapFactory.decodeFile(pathToImage));
         }
     }
 
     public void onHistoryClick(View v)
+    {
+        Intent intent = new Intent(context, HistoryActivity.class);
+        startActivity(intent);
+    }
+
+    public void storeData()
     {
 
     }
