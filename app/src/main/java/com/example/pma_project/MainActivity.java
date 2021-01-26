@@ -1,17 +1,13 @@
 package com.example.pma_project;
 
-import android.Manifest;
-import android.app.Activity;
+
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.ContactsContract;
 import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
@@ -20,42 +16,24 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.ContentView;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
-//import androidx.navigation.NavController;
-//import androidx.navigation.Navigation;
-//import androidx.navigation.fragment.NavHostFragment;
-//import androidx.navigation.ui.NavigationUI;
-
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
+import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.FieldPosition;
-import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -71,8 +49,11 @@ public class MainActivity extends AppCompatActivity {
     private String date;
     private String pathToImage;
 
-    public static ArrayList<Data> data = new ArrayList<>();
+    public static List<Data> data = new ArrayList<>();
     final static String appDir = "/AstronomyPictures/";
+    final static String appDataFileName = "appData.txt";
+    final static String pathToStorage = Environment.getExternalStorageDirectory().getAbsolutePath();
+    final static String fullPathToFile = pathToStorage + appDir + appDataFileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,10 +68,6 @@ public class MainActivity extends AppCompatActivity {
         imageView = (ImageView)findViewById(R.id.imageView);
         context = this;
 
-//        NavHostFragment navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment);
-//        NavController navController = navHostFragment.getNavController();
-//        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-//        NavigationUI.setupWithNavController(bottomNav, navController);
 
     }
 
@@ -127,47 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonSelectDateClick(View v)
     {
-            RequestQueue queue = Volley.newRequestQueue(context);
-            String url ="https://api.nasa.gov/planetary/apod?api_key=m9enue7ZctoE5BvVOGhhJffrh3v59cG5hXJau5Nj" + "&date=" + editTextDate.getText().toString();
-
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                    new Response.Listener<String>()
-                    {
-                        @Override
-                        public void onResponse(String response)
-                        {
-                            try
-                            {
-                                JSONObject jsonObject = new JSONObject(response);
-
-                                date = jsonObject.getString("date");
-                                String title = jsonObject.getString("title");
-                                String description = jsonObject.getString("explanation");
-                                imageURL = jsonObject.getString("url");
-
-                                pathToImage = Environment.getExternalStorageDirectory() + appDir + date + ".jpeg";
-                                if(imageURL != null)
-                                downloadImageFromUrl(v);
-
-                                viewTitle.setText(title);
-                                viewDescription.setText(description);
-                            }
-                            catch (JSONException e)
-                            {
-                                e.printStackTrace();
-                            }
-                        }
-                    },
-                    new Response.ErrorListener()
-                    {
-                        @Override
-                        public void onErrorResponse(VolleyError error)
-                        {
-                            viewTitle.setText("That didn't work!");
-                            Toast.makeText(getApplicationContext(),"We can't see the future nor NASA, sorry :(", Toast.LENGTH_LONG).show();
-                        }
-                    });
-            queue.add(stringRequest);
+        getApiResponse(v);
     }
 
     public void downloadImageFromUrl(View view) {
@@ -240,8 +177,101 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void storeData(String date, String title, String explanation, String pathToImage)
+    public void storeData(Data dataToStore)
     {
+        Gson gson = new Gson();
+        String data = gson.toJson(dataToStore);
 
+        if(appFileExists(fullPathToFile))
+        {
+            try {
+                String stream = "," + data;
+                FileOutputStream fos = new FileOutputStream(fullPathToFile,true);
+                fos.write(stream.getBytes());
+                fos.flush();
+                fos.close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            try {
+                FileOutputStream fos = new FileOutputStream(fullPathToFile,false);
+                fos.write(data.getBytes());
+                fos.flush();
+                fos.close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void loadData()
+    {
+        
+    }
+    
+    public boolean appFileExists(String fullPathToFile)
+    {
+        File file = new File(fullPathToFile);
+        if(file.exists())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public void getApiResponse(View v)
+    {
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url ="https://api.nasa.gov/planetary/apod?api_key=m9enue7ZctoE5BvVOGhhJffrh3v59cG5hXJau5Nj" + "&date=" + editTextDate.getText().toString();
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>()
+                {
+                    @Override
+                    public void onResponse(String response)
+                    {
+                        try
+                        {
+                            JSONObject jsonObject = new JSONObject(response);
+
+                            date = jsonObject.getString("date");
+                            String title = jsonObject.getString("title");
+                            String explanation = jsonObject.getString("explanation");
+                            imageURL = jsonObject.getString("url");
+
+                            pathToImage = Environment.getExternalStorageDirectory() + appDir + date + ".jpeg";
+                            if(imageURL != null)
+                                downloadImageFromUrl(v);
+
+                            viewTitle.setText(title);
+                            viewDescription.setText(explanation);
+
+                            Data dataToStore = new Data(date, pathToImage, title, explanation);
+                            storeData(dataToStore);
+                        }
+                        catch (JSONException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error)
+                    {
+                        viewTitle.setText("That didn't work!");
+                        Toast.makeText(getApplicationContext(),"Something went wrong", Toast.LENGTH_LONG).show();
+                    }
+                });
+        queue.add(stringRequest);
     }
 }

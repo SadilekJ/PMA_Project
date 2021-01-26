@@ -7,14 +7,12 @@ public class Data {
     private String pathToImage;
     private String title;
     private String explanation;
-    private Date dateTimeCreated;
 
-    public Data(String date, String pathToImage, String title, String explanation, Date dateTimeCreated) {
+    public Data(String date, String pathToImage, String title, String explanation) {
         this.date = date;
         this.pathToImage = pathToImage;
         this.title = title;
         this.explanation = explanation;
-        this.dateTimeCreated = dateTimeCreated;
     }
 
     public String getDate() {
@@ -47,13 +45,5 @@ public class Data {
 
     public void setExplanation(String explanation) {
         this.explanation = explanation;
-    }
-
-    public Date getDateTimeCreated() {
-        return dateTimeCreated;
-    }
-
-    public void setDateTimeCreated(Date dateTimeCreated) {
-        this.dateTimeCreated = dateTimeCreated;
     }
 }
