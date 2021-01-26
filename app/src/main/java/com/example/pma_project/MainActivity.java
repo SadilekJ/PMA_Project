@@ -24,13 +24,25 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -68,7 +80,13 @@ public class MainActivity extends AppCompatActivity {
         imageView = (ImageView)findViewById(R.id.imageView);
         context = this;
 
-
+//        if(appFileExists(fullPathToFile)) {
+//            try {
+//                loadData();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
     public void onEditClick(View v)
@@ -108,8 +126,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void downloadImageFromUrl(View view) {
-            MyAsyncTask asyncTask = new MyAsyncTask();
-            asyncTask.execute();
+        MyAsyncTask asyncTask = new MyAsyncTask();
+        asyncTask.execute();
     }
 
     class MyAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -173,19 +191,27 @@ public class MainActivity extends AppCompatActivity {
 
     public void onHistoryClick(View v)
     {
-        Intent intent = new Intent(context, HistoryActivity.class);
-        startActivity(intent);
+//        Intent intent = new Intent(context, HistoryActivity.class);
+//        startActivity(intent);
+        if(appFileExists(fullPathToFile)) {
+            try {
+                loadData();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void storeData(Data dataToStore)
     {
         Gson gson = new Gson();
-        String data = gson.toJson(dataToStore);
+        String dataToJson = gson.toJson(dataToStore);
+        data.add(dataToStore);
 
         if(appFileExists(fullPathToFile))
         {
             try {
-                String stream = "," + data;
+                String stream = "," + dataToJson;
                 FileOutputStream fos = new FileOutputStream(fullPathToFile,true);
                 fos.write(stream.getBytes());
                 fos.flush();
@@ -199,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
         {
             try {
                 FileOutputStream fos = new FileOutputStream(fullPathToFile,false);
-                fos.write(data.getBytes());
+                fos.write(dataToJson.getBytes());
                 fos.flush();
                 fos.close();
             }
@@ -209,9 +235,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void loadData()
-    {
-        
+    public void loadData() throws IOException {
+        Gson gson = new Gson();
+        BufferedReader br = new BufferedReader(new FileReader(fullPathToFile));
+        String line = "";
+        String dataFromFile = new String();
+        while((line = br.readLine()) != null)
+        {
+            dataFromFile += line;
+        }
+
+        char[] array = dataFromFile.toCharArray();
+        int begin = 0;
+        for(int i = 0; i < array.length; i++)
+        {
+            if((array[i] == ','))
+            {
+                if(array[i - 1] == '}') {
+                    String jsonObject = dataFromFile.substring(begin, i);
+                    Data object = gson.fromJson(jsonObject, Data.class);
+                    data.add(object);
+                    begin = i + 1;
+                }
+            }
+            else if(i + 1 == array.length)
+            {
+                String jsonObject = dataFromFile.substring(begin);
+                Data object = gson.fromJson(jsonObject, Data.class);
+                data.add(object);
+            }
+        }
+
     }
     
     public boolean appFileExists(String fullPathToFile)
