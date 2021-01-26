@@ -5,6 +5,8 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import static com.example.pma_project.MainActivity.data;
+
 public class HistoryActivity extends AppCompatActivity {
 
     @Override
@@ -16,5 +18,10 @@ public class HistoryActivity extends AppCompatActivity {
     public void onHomeClick(View v)
     {
         this.finish();
+    }
+
+    public void showItems(View v)
+    {
+        data.iterator();
     }
 }

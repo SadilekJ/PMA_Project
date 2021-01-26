@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
@@ -26,10 +27,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
+//import androidx.navigation.NavController;
+//import androidx.navigation.Navigation;
+//import androidx.navigation.fragment.NavHostFragment;
+//import androidx.navigation.ui.NavigationUI;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -52,6 +53,7 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.FieldPosition;
 import java.text.ParsePosition;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -69,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
     private String date;
     private String pathToImage;
 
-//    final static String pathESD = Environment.getExternalStorageDirectory().getAbsolutePath();
+    public static ArrayList<Data> data = new ArrayList<>();
+    final static String appDir = "/AstronomyPictures/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                                 String description = jsonObject.getString("explanation");
                                 imageURL = jsonObject.getString("url");
 
-                                pathToImage = Environment.getExternalStorageDirectory() + "/Pictures/" + date + ".jpeg";
+                                pathToImage = Environment.getExternalStorageDirectory() + appDir + date + ".jpeg";
                                 if(imageURL != null)
                                 downloadImageFromUrl(v);
 
@@ -161,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onErrorResponse(VolleyError error)
                         {
                             viewTitle.setText("That didn't work!");
+                            Toast.makeText(getApplicationContext(),"We can't see the future nor NASA, sorry :(", Toast.LENGTH_LONG).show();
                         }
                     });
             queue.add(stringRequest);
@@ -182,24 +186,27 @@ public class MainActivity extends AppCompatActivity {
         protected Void doInBackground(Void... voids) {
             try {
                 URL url = new URL(imageURL);
-                //create the new connection
+
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                //set up some things on the connection
                 urlConnection.setRequestMethod("GET");
                 urlConnection.setDoOutput(true);
-                //and connect!
                 urlConnection.connect();
-                //set the path where we want to save the file in this case, going to save it on the root directory of the sd card.
+
                 File SDCardRoot = Environment.getExternalStorageDirectory();
-                //create a new file, specifying the path, and the filename which we want to save the file as.
-                File file = new File(SDCardRoot,"/Pictures/" + date + ".jpeg");
-                //this will be used to write the downloaded data into the file we created
+
+                File directory = new File(SDCardRoot + appDir);
+                if(!directory.exists()) {
+                    directory.mkdir();
+                }
+
+                File file = new File(SDCardRoot,appDir + date + ".jpeg");
+
                 FileOutputStream fileOutput = new FileOutputStream(file);
-                //this will be used in reading the data from the internet
+
                 InputStream inputStream = urlConnection.getInputStream();
-                //this is the total size of the file
+
                 int totalSize = urlConnection.getContentLength();
-                //variable to store total downloaded bytes
+
                 int downloadedSize = 0;
                 byte[] buffer = new byte[1024];
                 int bufferLength = 0; //used to store a temporary size of the buffer
@@ -209,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
                     fileOutput.write(buffer, 0, bufferLength);
                     //add up the size so we know how much is downloaded
                     downloadedSize += bufferLength;
-                    //this is where you would do something to report the prgress, like this maybe
+                    //this is where you would do something to report the progress
                     //updateProgress(downloadedSize, totalSize);
                 }
             }
@@ -233,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void storeData()
+    public void storeData(String date, String title, String explanation, String pathToImage)
     {
 
     }
