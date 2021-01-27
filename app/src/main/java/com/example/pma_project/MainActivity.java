@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private String date;
     private String pathToImage;
 
-    public static List<Data> data = new ArrayList<>();
+    public static ArrayList<Data> data = new ArrayList<>();
     final static String appDir = "/AstronomyPictures/";
     final static String appDataFileName = "appData.txt";
     final static String pathToStorage = Environment.getExternalStorageDirectory().getAbsolutePath();
@@ -80,13 +80,23 @@ public class MainActivity extends AppCompatActivity {
         imageView = (ImageView)findViewById(R.id.imageView);
         context = this;
 
-//        if(appFileExists(fullPathToFile)) {
-//            try {
-//                loadData();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        if(appFileExists(fullPathToFile)) {
+            try {
+                loadData();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(getIntent().getExtras() != null) {
+            int id = getIntent().getExtras().getInt("position");
+            if ((0 <= id) && (id < data.size())) {
+                Data dataToShow = data.get(id);
+                imageView.setImageBitmap(BitmapFactory.decodeFile(dataToShow.getPathToImage()));
+                viewTitle.setText(dataToShow.getTitle());
+                viewDescription.setText(dataToShow.getExplanation());
+            }
+        }
     }
 
     public void onEditClick(View v)
@@ -122,6 +132,16 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonSelectDateClick(View v)
     {
+        String inputDate = editTextDate.getText().toString();
+        int i = checkIfSelectedDateExists(inputDate);
+        if(i != -1)
+        {
+            Data dataToShow = data.get(i);
+            imageView.setImageBitmap(BitmapFactory.decodeFile(dataToShow.getPathToImage()));
+            viewTitle.setText(dataToShow.getTitle());
+            viewDescription.setText(dataToShow.getExplanation());
+        }
+        else
         getApiResponse(v);
     }
 
@@ -191,22 +211,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void onHistoryClick(View v)
     {
-//        Intent intent = new Intent(context, HistoryActivity.class);
-//        startActivity(intent);
-        if(appFileExists(fullPathToFile)) {
-            try {
-                loadData();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        Intent intent = new Intent(context, HistoryActivity.class);
+        startActivity(intent);
     }
 
     public void storeData(Data dataToStore)
     {
         Gson gson = new Gson();
         String dataToJson = gson.toJson(dataToStore);
-        data.add(dataToStore);
 
         if(appFileExists(fullPathToFile))
         {
@@ -233,39 +245,24 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+
+        data.add(dataToStore);
     }
 
     public void loadData() throws IOException {
         Gson gson = new Gson();
         BufferedReader br = new BufferedReader(new FileReader(fullPathToFile));
         String line = "";
-        String dataFromFile = new String();
+        String dataFromFile = "[";
         while((line = br.readLine()) != null)
         {
             dataFromFile += line;
         }
+        dataFromFile += "]";
 
-        char[] array = dataFromFile.toCharArray();
-        int begin = 0;
-        for(int i = 0; i < array.length; i++)
-        {
-            if((array[i] == ','))
-            {
-                if(array[i - 1] == '}') {
-                    String jsonObject = dataFromFile.substring(begin, i);
-                    Data object = gson.fromJson(jsonObject, Data.class);
-                    data.add(object);
-                    begin = i + 1;
-                }
-            }
-            else if(i + 1 == array.length)
-            {
-                String jsonObject = dataFromFile.substring(begin);
-                Data object = gson.fromJson(jsonObject, Data.class);
-                data.add(object);
-            }
-        }
+        Type dataListType = new TypeToken<ArrayList<Data>>(){}.getType();
 
+        data = gson.fromJson(dataFromFile, dataListType);
     }
     
     public boolean appFileExists(String fullPathToFile)
@@ -327,5 +324,21 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         queue.add(stringRequest);
+    }
+
+    public int checkIfSelectedDateExists(String inputDate)
+    {
+        int i = 0;
+        for (Data data: data)
+        {
+            {
+                if (data.getDate().equals(inputDate))
+                {
+                    return i;
+                }
+                i++;
+            }
+        }
+        return -1;
     }
 }

@@ -6,4 +6,5 @@
     <string name="textDescription">Welcome, select your date to show astronomy picture of the day from NASA. Date range is from year 1996 to today.</string>
     <string name="textTitle">Astronomy Pictures</string>
     <string name="textButtonHistory">History</string>
+    <string name="textHistoryPage">History items</string>
 </resources>
