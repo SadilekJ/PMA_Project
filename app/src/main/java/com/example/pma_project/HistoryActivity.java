@@ -31,7 +31,6 @@ public class HistoryActivity extends AppCompatActivity {
 
         adapter = new DataAdapter(dataEntries);
         this.dataEntries.setAdapter(adapter);
-
     }
 
 }

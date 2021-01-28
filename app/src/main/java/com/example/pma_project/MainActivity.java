@@ -80,11 +80,13 @@ public class MainActivity extends AppCompatActivity {
         imageView = (ImageView)findViewById(R.id.imageView);
         context = this;
 
-        if(appFileExists(fullPathToFile)) {
-            try {
-                loadData();
-            } catch (IOException e) {
-                e.printStackTrace();
+        if(data.size() == 0) {
+            if (appFileExists(fullPathToFile)) {
+                try {
+                    loadData();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
